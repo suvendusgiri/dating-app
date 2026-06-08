@@ -48,8 +48,6 @@ body {
   padding: 0; margin: -1px; overflow: hidden;
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
-.visually-hidden { composes: sr-only; }
-
 /* ---------- Page shell ---------- */
 .page-header {
   background: var(--clr-surface);
@@ -292,12 +290,18 @@ main {
   text-align: center;
 }
 
-/* Validation error beneath a slot */
+/* Validation error — overlaid at the bottom of the slot, no layout impact */
 .slot-error {
-  font-size: 0.72rem;
-  color: var(--clr-error);
-  margin-top: 4px;
-  padding: 0 2px;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(217, 56, 42, 0.88);
+  padding: 5px 6px;
+  text-align: center;
+  line-height: 1.3;
+  z-index: 3;
   display: none;
 }
 .slot-error.visible { display: block; }

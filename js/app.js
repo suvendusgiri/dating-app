@@ -136,8 +136,10 @@ function buildFilledSlot(photo, visualIndex) {
   img.src = photo.objectUrl || photo.url;
   img.alt = photo.isPrimary ? 'Primary photo' : `Photo ${visualIndex + 1}`;
   img.loading = 'lazy';
-  img.addEventListener('click', () => openLightbox(photo.objectUrl || photo.url));
-  img.addEventListener('keydown', e => { if (e.key === 'Enter') openLightbox(photo.objectUrl || photo.url); });
+  img.tabIndex = 0;
+  img.setAttribute('role', 'button');
+  img.addEventListener('click', () => openLightbox(photo.objectUrl || photo.url, img));
+  img.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(photo.objectUrl || photo.url, img); } });
   slot.appendChild(img);
 
   const controls = document.createElement('div');
@@ -184,17 +186,17 @@ function buildEmptySlot(absoluteIndex) {
   label.textContent = 'Add photo';
   slot.appendChild(label);
 
+  // Error lives inside the slot so it's an absolute overlay — no grid layout impact
   const errorEl = document.createElement('p');
   errorEl.className = 'slot-error';
   errorEl.setAttribute('role', 'alert');
   errorEl.setAttribute('aria-live', 'polite');
   errorEl.id = `slot-error-${absoluteIndex}`;
-  // Errors go outside the slot so they don't affect layout
   slot.dataset.errorId = errorEl.id;
+  slot.appendChild(errorEl);
 
   const triggerUpload = () => {
     pendingSlotIndex = absoluteIndex;
-    // Attach error element reference
     fileInput.dataset.errorId = errorEl.id;
     fileInput.click();
   };
@@ -202,11 +204,7 @@ function buildEmptySlot(absoluteIndex) {
   slot.addEventListener('click', triggerUpload);
   slot.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerUpload(); } });
 
-  // Wrap in fragment so error can follow slot in DOM
-  const wrapper = document.createDocumentFragment();
-  wrapper.appendChild(slot);
-  wrapper.appendChild(errorEl);
-  return wrapper;
+  return slot;
 }
 
 /* ─── Photo actions ──────────────────────────────────────── */
@@ -361,13 +359,16 @@ let panStartY   = 0;
 // Pinch-to-zoom state
 let lastPinchDist = 0;
 
-function openLightbox(url) {
+// The element that triggered the lightbox — focus is returned here on close
+let lbOpener = null;
+
+function openLightbox(url, triggerEl) {
+  lbOpener = triggerEl || null;
   lbImg.src = url;
   lbScale = 1; lbPanX = 0; lbPanY = 0;
   applyTransform();
   lightbox.classList.add('open');
   document.body.classList.add('lightbox-open');
-  // Focus the close button for keyboard users
   lbClose.focus();
 }
 
@@ -377,6 +378,7 @@ function closeLightbox() {
   lbImg.src = '';
   lbScale = 1; lbPanX = 0; lbPanY = 0;
   isDragging = false;
+  if (lbOpener) { lbOpener.focus(); lbOpener = null; }
 }
 
 function applyTransform() {

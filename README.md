@@ -5,11 +5,6 @@ no build step required. Drop the folder into any web server and open `index.html
 
 ---
 
-
-```
-
-```
-
 > **Why a server?** `app.js` uses ES module `import` (`type="module"`).
 > Browsers block module imports from `file://` URLs. Any local server works.
 
